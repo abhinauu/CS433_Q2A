@@ -15,31 +15,31 @@
 int process_packet(unsigned char *, int);
 
 int main() {
-    int raw_socket;
+    int rawSocket;
     struct sockaddr server;
     socklen_t server_len = sizeof(server);
     unsigned char packet_buffer[PACKET_BUFFER_SIZE];
 
-    // Create a raw socket to capture all packets
-    raw_socket = socket(AF_PACKET, SOCK_RAW, htons(ETH_P_ALL));
-    if (raw_socket == -1) {
-        perror("Socket creation error");
+    // Creating a raw socket 
+    rawSocket = socket(AF_PACKET, SOCK_RAW, htons(ETH_P_ALL));
+    if (rawSocket == -1) {
+        perror("Error in creating socket");
         exit(1);
     }
 
-    // Receive packets and print information
+    // Receiving packets
     while (1) {
-        int packet_size = recvfrom(raw_socket, packet_buffer, PACKET_BUFFER_SIZE, 0, &server, &server_len);
+        int packet_size = recvfrom(rawSocket, packet_buffer, PACKET_BUFFER_SIZE, 0, &server, &server_len);
         if (packet_size == -1) {
-            perror("Packet receive error");
-            close(raw_socket);
+            perror("Error in receiving packet");
+            close(rawSocket);
             exit(1);
         }
 	
         if (process_packet(packet_buffer, packet_size)) break;
     }
 
-    close(raw_socket);
+    close(rawSocket);
     return 0;
 }
 
@@ -50,7 +50,7 @@ int process_packet(unsigned char *packet, int packet_size) {
     char src_ip[INET_ADDRSTRLEN];
     char dest_ip[INET_ADDRSTRLEN];
 
-    // Convert source and destination IP addresses to human-readable format
+    // Converting IP addresses to human-readable format
     inet_ntop(AF_INET, &(ip_header->saddr), src_ip, INET_ADDRSTRLEN);
     inet_ntop(AF_INET, &(ip_header->daddr), dest_ip, INET_ADDRSTRLEN);
     
@@ -66,7 +66,6 @@ int process_packet(unsigned char *packet, int packet_size) {
         printf("Destination Port: %d\n", ntohs(tcp_header->th_dport));
         printf("Payload Data:\n");
 
-        // Print payload data, assuming it's ASCII text
         for (int i = 0; i < strlen(payload); i++) {
             if (payload[i] >= 32 && payload[i] <= 126) {
                 putchar(payload[i]);
